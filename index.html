@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Happy Birthday Challenge!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Parisienne&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #FFF0F5 0%, #FFDDF2 100%);
+      font-family: 'Cormorant Garamond', serif;
+      overflow-x: hidden;
+      padding: 15px;
+    }
+
+    html {
+      height: -webkit-fill-available;
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .greeting-card {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      padding: 35px 25px;
+      box-shadow: 0 20px 50px rgba(136, 14, 79, 0.12);
+      text-align: center;
+      transform: scale(0.95);
+      opacity: 0;
+      animation: unfold 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+      z-index: 2;
+    }
+
+    @keyframes unfold {
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .script-header {
+      font-family: 'Parisienne', cursive;
+      color: #880e4f;
+      font-size: clamp(2.8rem, 8vw, 3.8rem);
+      line-height: 1.1;
+      margin-bottom: 5px;
+      font-weight: normal;
+    }
+
+    .sub-header {
+      font-family: 'Cormorant Garamond', serif;
+      color: #880e4f;
+      font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .panel-container {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(248, 187, 208, 0.6);
+      border-radius: 18px;
+      padding: 20px 15px;
+      margin-bottom: 20px;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);
+      position: relative;
+      min-height: 250px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .archery-instructions {
+      font-size: clamp(1.05rem, 4vw, 1.25rem);
+      color: #880e4f;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    #archeryCanvas {
+      background: rgba(255, 245, 249, 0.9);
+      border: 2px solid #f48fb1;
+      border-radius: 12px;
+      cursor: crosshair;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .scrambled-word {
+      font-size: clamp(1.6rem, 6vw, 2.3rem);
+      letter-spacing: 4px;
+      color: #880e4f;
+      font-weight: 600;
+      margin: 15px 0;
+    }
+
+    .game-input {
+      width: 90%;
+      max-width: 320px;
+      padding: 12px 18px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      text-align: center;
+      border: 1px solid #f48fb1;
+      border-radius: 20px;
+      outline: none;
+      color: #5c0a35;
+      background: rgba(255, 255, 255, 0.95);
+      margin-bottom: 18px;
+    }
+
+    .hint-text {
+      font-size: 1rem;
+      color: #880e4f;
+      font-style: italic;
+      margin-bottom: 10px;
+    }
+
+    .message-panel {
+      display: none;
+      width: 100%;
+      min-height: 280px;
+      max-height: 380px;
+      overflow-y: auto;
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(248, 187, 208, 0.7);
+      border-radius: 18px;
+      padding: 25px 20px;
+      margin-bottom: 20px;
+      text-align: left;
+      box-shadow: inset 0 2px 8px rgba(136, 14, 79, 0.04);
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .message-panel::-webkit-scrollbar {
+      width: 5px;
+    }
+    .message-panel::-webkit-scrollbar-thumb {
+      background: #f48fb1;
+      border-radius: 10px;
+    }
+
+    .message-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 4vw, 1.3rem);
+      color: #4a072b;
+      line-height: 1.7;
+      font-weight: 500;
+      white-space: pre-wrap;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.2rem;
+      background-color: #880e4f;
+      margin-left: 3px;
+      animation: blink 0.7s infinite;
+      vertical-align: middle;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    .formal-btn {
+      background: #880e4f;
+      color: #ffffff;
+      border: none;
+      padding: 12px 28px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(136, 14, 79, 0.2);
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    .formal-btn:active {
+      transform: scale(0.96);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(136, 14, 79, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      z-index: 100;
+      padding: 15px;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: #FFF5F9;
+      padding: 30px 22px;
+      border-radius: 24px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+      transform: translateY(20px);
+      transition: transform 0.4s ease;
+      border: 1px solid rgba(255,255,255,0.8);
+      border-top: 6px solid #880e4f;
+    }
+
+    .modal-overlay.active .modal-card {
+      transform: translateY(0);
+    }
+
+    .modal-card h2 {
+      font-family: 'Parisienne', cursive;
+      color: #880e4f;
+      font-size: 2.5rem;
+      margin-bottom: 5px;
+    }
+
+    .modal-card p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      color: #5c0a35;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .cake-container {
+      position: relative;
+      width: 200px;
+      height: 120px;
+      margin: 10px auto 20px auto;
+    }
+
+    .plate {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 10px;
+      background: #e0e0e0;
+      border-radius: 10px;
+      opacity: 0;
+    }
+
+    .layer-bottom {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 32px;
+      background: #f06292;
+      border-radius: 4px;
+      opacity: 0;
+    }
+
+    .layer-middle {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 32px;
+      background: #f48fb1;
+      border-radius: 4px;
+      opacity: 0;
+    }
+
+    .icing {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 144px;
+      height: 25px;
+      background: #FFE4E1;
+      border-radius: 8px;
+      clip-path: polygon(0% 0%, 100% 0%, 100% 45%, 93% 85%, 86% 40%, 78% 95%, 70% 35%, 62% 75%, 54% 40%, 45% 90%, 38% 35%, 30% 80%, 22% 40%, 14% 100%, 6% 45%, 0% 50%);
+      opacity: 0;
+      z-index: 2;
+    }
+
+    .candle {
+      position: absolute;
+      bottom: 82px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 8px;
+      height: 24px;
+      background: repeating-linear-gradient(45deg, #ffffff, #ffffff 4px, #ec407a 4px, #ec407a 8px);
+      border-radius: 2px;
+      opacity: 0;
+      z-index: 3;
+    }
+
+    .flame {
+      position: absolute;
+      bottom: 108px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 15px;
+      background: #ffb74d;
+      border-radius: 50% 50% 35% 35%;
+      box-shadow: 0 0 10px #ff9800;
+      opacity: 0;
+      z-index: 4;
+    }
+
+    @keyframes dropIn {
+      0% { transform: translate(-50%, -200px); opacity: 0; }
+      100% { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    @keyframes ignite {
+      0% { transform: translate(-50%, 10px) scale(0); opacity: 0; }
+      100% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+    }
+
+    @keyframes flicker {
+      0%, 100% { transform: translate(-50%, 0) scale(1); }
+      50% { transform: translate(-50%, -1px) scale(1.08); }
+    }
+
+    .modal-overlay.active .plate { animation: dropIn 0.4s ease-out forwards 0.2s; }
+    .modal-overlay.active .layer-bottom { animation: dropIn 0.4s ease-out forwards 0.4s; }
+    .modal-overlay.active .layer-middle { animation: dropIn 0.4s ease-out forwards 0.6s; }
+    .modal-overlay.active .icing { animation: dropIn 0.4s ease-out forwards 0.8s; }
+    .modal-overlay.active .candle { animation: dropIn 0.4s ease-out forwards 1.0s; }
+    .modal-overlay.active .flame { animation: ignite 0.3s ease-out forwards 1.3s, flicker 1.2s ease-in-out infinite 1.6s; }
+
+    .modal-close-btn {
+      background: transparent;
+      border: 1px solid #880e4f;
+      color: #880e4f;
+      padding: 8px 24px;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="greeting-card">
+    <h1 class="script-header">Happy Birthday</h1>
+    <div class="sub-header" id="sub-title">Do you want to see my message? 🏹</div>
+
+    <!-- Step 1: Responsive Archery Target Game -->
+    <div class="panel-container" id="archeryPanel">
+      <div class="archery-instructions">Pull back & release to hit "YES"!</div>
+      <canvas id="archeryCanvas" width="440" height="220"></canvas>
+    </div>
+
+    <!-- Step 2: Mini-Game Panel -->
+    <div class="panel-container" id="gamePanel" style="display: none;">
+      <div class="hint-text" id="stageTracker">Stage 1 of 3</div>
+      <div class="scrambled-word" id="scrambledWord">CELEBRATE</div>
+      <div class="hint-text" id="hintText">Hint: What we do today!</div>
+      <input type="text" id="userInput" class="game-input" placeholder="Type your answer..." autocomplete="off">
+      <button class="formal-btn" onclick="checkAnswer()">Submit Word</button>
+    </div>
+
+    <!-- Step 3: Unlocked Message Panel -->
+    <div class="message-panel" id="messagePanel">
+      <span class="message-text" id="typewriterText"></span><span class="cursor" id="cursor"></span>
+    </div>
+
+    <button class="formal-btn" id="noteBtn" style="display: none;" onclick="openModal()">A Special Note 🎀</button>
+  </div>
+
+  <!-- Special Note Modal -->
+  <div class="modal-overlay" id="customModal">
+    <div class="modal-card">
+      <h2>22nd Birthday Wish</h2>
+      <div class="cake-container">
+        <div class="plate"></div>
+        <div class="layer-bottom"></div>
+        <div class="layer-middle"></div>
+        <div class="icing"></div>
+        <div class="candle"></div>
+        <div class="flame"></div>
+      </div>
+      <p>Happy 22nd Birthday, Ainna! Hope you have an amazing day. Enjoy your special day and keep smiling! 💗✨<br><br>— From Ivan</p>
+      <button class="modal-close-btn" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const fullMessage = `A Little Message for You 💗
+
+Dear Ainna,
+Happy 22nd Birthday! 🎂💗
+
+I just want to wish you a very happy birthday and hope you enjoy your special day. You’re finally 22! And honestly, ang bilis ng panahon. Konti na lang and graduation na tayo next year. I hope we both make the most out of this last chapter of college and finally reach that graduation day we’ve been waiting for.
+
+I know there will still be stressful days, especially with everything we have to finish before graduation, but I hope you keep doing your best and don’t forget to enjoy the little things along the way. You’ve already come this far, so konti na lang talaga!
+
+And of course, keep being the Ainna that everyone knows kind, fun, and always somehow making things more interesting. HAHAHA. 😆 But seriously, I hope you always stay true to yourself and keep doing the things that make you happy.
+
+Keep slaying, as always. 💅🏻✨ Though honestly, I don't think you really need to try that hard... you already have that effect. 😌 HAHAHA.
+
+Anyway, I hope this year brings you more happy moments, good memories, and lots of reasons to smile. Enjoy being 22, and make the most out of it because before we know it, we'll be walking across that stage already. 🎓
+
+Happy Birthday again, Ainna! 💗🎂
+Enjoy your day you deserve it.
+
+From Ivan`;
+
+    const puzzles = [
+      { word: "CELEBRATION", scrambled: "A C E I L N O B T R E", hint: "Hint: What we are doing today!" },
+      { word: "HAPPINESS", scrambled: "P P A S E I H N S", hint: "Hint: What I wish for you always!" },
+      { word: "MAGNIFICENT", scrambled: "C E F I I M N A G T N", hint: "Hint: A word that describes you!" }
+    ];
+
+    let currentStage = 0;
+
+    /* --- CROSS-DEVICE ARCHERY ENGINE --- */
+    const archCanvas = document.getElementById('archeryCanvas');
+    const aCtx = archCanvas.getContext('2d');
+
+    const bowPos = { x: 65, y: 110 };
+    let isDragging = false;
+    let dragPos = { x: bowPos.x, y: bowPos.y };
+    
+    let arrow = {
+      x: bowPos.x,
+      y: bowPos.y,
+      vx: 0,
+      vy: 0,
+      angle: 0,
+      isFlying: false,
+      isStuck: false
+    };
+
+    let feedbackMessage = "";
+    let feedbackTimer = 0;
+
+    const target = {
+      x: 365,
+      y: 110,
+      radiusYES: 50,
+      radiusNO: 85
+    };
+
+    function resetArrow() {
+      arrow.x = bowPos.x;
+      arrow.y = bowPos.y;
+      arrow.vx = 0;
+      arrow.vy = 0;
+      arrow.angle = 0;
+      arrow.isFlying = false;
+      arrow.isStuck = false;
+      dragPos = { x: bowPos.x, y: bowPos.y };
+    }
+
+    function getPointerPos(e) {
+      const rect = archCanvas.getBoundingClientRect();
+      const scaleX = archCanvas.width / rect.width;
+      const scaleY = archCanvas.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+
+    function handlePointerDown(e) {
+      if (arrow.isFlying || arrow.isStuck) return;
+      const pos = getPointerPos(e);
+      const dist = Math.hypot(pos.x - bowPos.x, pos.y - bowPos.y);
+      if (dist < 60) {
+        isDragging = true;
+        dragPos = pos;
+        if (archCanvas.setPointerCapture) archCanvas.setPointerCapture(e.pointerId);
+      }
+    }
+
+    function handlePointerMove(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      dragPos = getPointerPos(e);
+      const dx = dragPos.x - bowPos.x;
+      const dy = dragPos.y - bowPos.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 55) {
+        dragPos.x = bowPos.x + (dx / dist) * 55;
+        dragPos.y = bowPos.y + (dy / dist) * 55;
+      }
+    }
+
+    function handlePointerUp(e) {
+      if (!isDragging) return;
+      isDragging = false;
+      if (archCanvas.releasePointerCapture) archCanvas.releasePointerCapture(e.pointerId);
+      
+      const dx = bowPos.x - dragPos.x;
+      const dy = bowPos.y - dragPos.y;
+      const power = Math.hypot(dx, dy);
+
+      if (power > 10) {
+        arrow.isFlying = true;
+        arrow.vx = dx * 0.28;
+        arrow.vy = dy * 0.28;
+        arrow.angle = Math.atan2(arrow.vy, arrow.vx);
+      } else {
+        resetArrow();
+      }
+    }
+
+    // Pointer Events for Cross-Platform compatibility
+    archCanvas.addEventListener('pointerdown', handlePointerDown);
+    archCanvas.addEventListener('pointermove', handlePointerMove);
+    archCanvas.addEventListener('pointerup', handlePointerUp);
+    archCanvas.addEventListener('pointercancel', handlePointerUp);
+
+    function updateArchery() {
+      if (arrow.isFlying) {
+        arrow.x += arrow.vx;
+        arrow.y += arrow.vy;
+        arrow.vy += 0.15; // Gravity
+        arrow.angle = Math.atan2(arrow.vy, arrow.vx);
+
+        const distToTarget = Math.hypot(arrow.x - target.x, arrow.y - target.y);
+
+        if (arrow.x >= target.x - 10 && arrow.x <= target.x + 30) {
+          if (distToTarget <= target.radiusYES) {
+            arrow.isFlying = false;
+            arrow.isStuck = true;
+            feedbackMessage = "YES! 🎯";
+            feedbackTimer = 60;
+            setTimeout(startPuzzle, 900);
+          } else if (distToTarget <= target.radiusNO) {
+            arrow.isFlying = false;
+            feedbackMessage = "NO! Try Again ❌";
+            feedbackTimer = 60;
+            setTimeout(resetArrow, 900);
+          }
+        }
+
+        if (arrow.x > archCanvas.width + 20 || arrow.y > archCanvas.height + 20 || arrow.x < -20) {
+          arrow.isFlying = false;
+          feedbackMessage = "Missed! Try Again 🏹";
+          feedbackTimer = 60;
+          setTimeout(resetArrow, 800);
+        }
+      }
+
+      if (feedbackTimer > 0) feedbackTimer--;
+    }
+
+    function drawArchery() {
+      aCtx.clearRect(0, 0, archCanvas.width, archCanvas.height);
+
+      // NO Outer Ring
+      aCtx.beginPath();
+      aCtx.arc(target.x, target.y, target.radiusNO, 0, Math.PI * 2);
+      aCtx.fillStyle = '#f8bbd0';
+      aCtx.fill();
+      aCtx.lineWidth = 2.5;
+      aCtx.strokeStyle = '#c2185b';
+      aCtx.stroke();
+
+      // YES Inner Ring
+      aCtx.beginPath();
+      aCtx.arc(target.x, target.y, target.radiusYES, 0, Math.PI * 2);
+      aCtx.fillStyle = '#880e4f';
+      aCtx.fill();
+      aCtx.strokeStyle = '#ffffff';
+      aCtx.stroke();
+
+      // Labels
+      aCtx.font = 'bold 12px Cormorant Garamond';
+      aCtx.fillStyle = '#880e4f';
+      aCtx.textAlign = 'center';
+      aCtx.fillText('NO', target.x, target.y - 60);
+      aCtx.fillText('NO', target.x, target.y + 68);
+
+      aCtx.font = 'bold 20px Cormorant Garamond';
+      aCtx.fillStyle = '#ffffff';
+      aCtx.fillText('YES', target.x, target.y + 6);
+
+      // Bow
+      aCtx.save();
+      aCtx.translate(bowPos.x, bowPos.y);
+      let bowAngle = isDragging ? Math.atan2(bowPos.y - dragPos.y, bowPos.x - dragPos.x) : 0;
+      aCtx.rotate(bowAngle);
+
+      aCtx.beginPath();
+      aCtx.arc(0, 0, 32, -Math.PI / 2.2, Math.PI / 2.2);
+      aCtx.lineWidth = 4;
+      aCtx.strokeStyle = '#5c0a35';
+      aCtx.stroke();
+
+      aCtx.beginPath();
+      if (isDragging) {
+        const pullDist = Math.hypot(bowPos.x - dragPos.x, bowPos.y - dragPos.y);
+        aCtx.moveTo(32 * Math.cos(-Math.PI / 2.2), 32 * Math.sin(-Math.PI / 2.2));
+        aCtx.lineTo(-pullDist, 0);
+        aCtx.lineTo(32 * Math.cos(Math.PI / 2.2), 32 * Math.sin(Math.PI / 2.2));
+      } else {
+        aCtx.moveTo(32 * Math.cos(-Math.PI / 2.2), 32 * Math.sin(-Math.PI / 2.2));
+        aCtx.lineTo(32 * Math.cos(Math.PI / 2.2), 32 * Math.sin(Math.PI / 2.2));
+      }
+      aCtx.lineWidth = 1.5;
+      aCtx.strokeStyle = '#888';
+      aCtx.stroke();
+      aCtx.restore();
+
+      // Arrow
+      let currentArrowX = arrow.x;
+      let currentArrowY = arrow.y;
+      let currentArrowAngle = arrow.angle;
+
+      if (isDragging) {
+        currentArrowX = dragPos.x;
+        currentArrowY = dragPos.y;
+        currentArrowAngle = Math.atan2(bowPos.y - dragPos.y, bowPos.x - dragPos.x);
+      }
+
+      if (!arrow.isStuck && !arrow.isFlying && !isDragging) {
+        currentArrowX = bowPos.x;
+        currentArrowY = bowPos.y;
+        currentArrowAngle = 0;
+      }
+
+      aCtx.save();
+      aCtx.translate(currentArrowX, currentArrowY);
+      aCtx.rotate(currentArrowAngle);
+
+      aCtx.beginPath();
+      aCtx.moveTo(-22, 0);
+      aCtx.lineTo(12, 0);
+      aCtx.lineWidth = 3;
+      aCtx.strokeStyle = '#4a072b';
+      aCtx.stroke();
+
+      aCtx.beginPath();
+      aCtx.moveTo(12, -4);
+      aCtx.lineTo(22, 0);
+      aCtx.lineTo(12, 4);
+      aCtx.fillStyle = '#d81b60';
+      aCtx.fill();
+
+      aCtx.restore();
+
+      // Feedback Text
+      if (feedbackTimer > 0) {
+        aCtx.font = 'bold 18px Cormorant Garamond';
+        aCtx.fillStyle = feedbackMessage.includes('YES') ? '#2e7d32' : '#c62828';
+        aCtx.textAlign = 'center';
+        aCtx.fillText(feedbackMessage, archCanvas.width / 2, 28);
+      }
+    }
+
+    function gameLoop() {
+      updateArchery();
+      drawArchery();
+      requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+
+    /* --- PUZZLE & FLOW LOGIC --- */
+    function startPuzzle() {
+      document.getElementById('archeryPanel').style.display = 'none';
+      document.getElementById('gamePanel').style.display = 'flex';
+      document.getElementById('sub-title').innerText = "Solve the Puzzle to Unlock";
+      loadStage();
+    }
+
+    function loadStage() {
+      if (currentStage < puzzles.length) {
+        document.getElementById('stageTracker').innerText = `Stage ${currentStage + 1} of ${puzzles.length}`;
+        document.getElementById('scrambledWord').innerText = puzzles[currentStage].scrambled;
+        document.getElementById('hintText').innerText = puzzles[currentStage].hint;
+        document.getElementById('userInput').value = "";
+      } else {
+        document.getElementById('gamePanel').style.display = 'none';
+        document.getElementById('messagePanel').style.display = 'block';
+        document.getElementById('sub-title').innerText = "A Celebration of You";
+        startTypewriter();
+      }
+    }
+
+    function checkAnswer() {
+      const input = document.getElementById('userInput').value.trim().toUpperCase();
+      if (input === puzzles[currentStage].word) {
+        currentStage++;
+        loadStage();
+      } else {
+        alert("Not quite! Try again.");
+      }
+    }
+
+    let charIndex = 0;
+    function startTypewriter() {
+      const targetElement = document.getElementById('typewriterText');
+      const panel = document.getElementById('messagePanel');
+      
+      if (charIndex < fullMessage.length) {
+        targetElement.textContent += fullMessage.charAt(charIndex);
+        charIndex++;
+        panel.scrollTop = panel.scrollHeight;
+        setTimeout(startTypewriter, 30);
+      } else {
+        document.getElementById('cursor').style.display = 'none';
+        document.getElementById('noteBtn').style.display = 'inline-block';
+      }
+    }
+
+    // Confetti Engine
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let pieces = [];
+    const colors = ['#880e4f', '#d81b60', '#f48fb1', '#f8bbd0', '#FFF0F5'];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Piece {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height - canvas.height;
+        this.size = Math.random() * 7 + 4;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.speed = Math.random() * 1.5 + 0.8;
+        this.angle = Math.random() * 360;
+        this.spin = Math.random() * 0.03 - 0.015;
+      }
+
+      update() {
+        this.y += this.speed;
+        this.angle += this.spin;
+        if (this.y > canvas.height) {
+          this.y = -20;
+          this.x = Math.random() * canvas.width;
+        }
+      }
+
+      draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.size, this.size / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+
+    for (let i = 0; i < 50; i++) pieces.push(new Piece());
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animateConfetti);
+    }
+    animateConfetti();
+
+    /* iOS/Mobile Audio Support - Full Happy Birthday Melody */
+    let audioCtx = null;
+    const notes = {
+      'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23,
+      'G4': 392.00, 'A4': 440.00, 'B4': 493.88, 'C5': 523.25,
+      'D5': 587.33, 'E5': 659.25, 'F5': 698.46, 'G5': 783.99,
+      'A5': 880.00, 'A#4': 466.16
+    };
+
+    const birthdaySong = [
+      // Line 1: Happy Birthday to you
+      { note: 'G4', duration: 0.35 }, { note: 'G4', duration: 0.15 },
+      { note: 'A4', duration: 0.5 },  { note: 'G4', duration: 0.5 },
+      { note: 'C5', duration: 0.5 },  { note: 'B4', duration: 1.0 },
+      
+      // Line 2: Happy Birthday to you
+      { note: 'G4', duration: 0.35 }, { note: 'G4', duration: 0.15 },
+      { note: 'A4', duration: 0.5 },  { note: 'G4', duration: 0.5 },
+      { note: 'D5', duration: 0.5 },  { note: 'C5', duration: 1.0 },
+
+      // Line 3: Happy Birthday, happy birthday
+      { note: 'G4', duration: 0.35 }, { note: 'G4', duration: 0.15 },
+      { note: 'G5', duration: 0.5 },  { note: 'E5', duration: 0.5 },
+      { note: 'C5', duration: 0.5 },  { note: 'B4', duration: 0.5 },
+      { note: 'A4', duration: 0.8 },
+
+      // Line 4: Happy Birthday to you
+      { note: 'F5', duration: 0.35 }, { note: 'F5', duration: 0.15 },
+      { note: 'E5', duration: 0.5 },  { note: 'C5', duration: 0.5 },
+      { note: 'D5', duration: 0.5 },  { note: 'C5', duration: 1.2 }
+    ];
+
+    function playBirthdaySong() {
+      const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+      if (!audioCtx) audioCtx = new AudioCtxClass();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      let currentTime = audioCtx.currentTime + 0.1;
+
+      birthdaySong.forEach((item) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = notes[item.note];
+        gain.gain.setValueAtTime(0.18, currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, currentTime + item.duration - 0.05);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(currentTime);
+        osc.stop(currentTime + item.duration);
+        currentTime += item.duration;
+      });
+    }
+
+    function openModal() {
+      document.getElementById('customModal').classList.add('active');
+      playBirthdaySong();
+    }
+
+    function closeModal() {
+      document.getElementById('customModal').classList.remove('active');
+    }
+  </script>
+</body>
+</html>
